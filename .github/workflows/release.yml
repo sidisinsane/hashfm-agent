@@ -46,6 +46,8 @@ jobs:
 
       - name: Run tests
         run: go test ./...
+        env:
+          GOPROXY: "https://proxy.golang.org,direct"
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
