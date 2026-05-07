@@ -49,6 +49,9 @@ jobs:
         env:
           GOPROXY: "https://proxy.golang.org,direct"
 
+      - name: Stage go module files
+        run: git add go.mod go.sum
+
       - name: Run tests
         run: go test ./...
         env:
