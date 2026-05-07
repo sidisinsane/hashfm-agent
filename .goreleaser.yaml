@@ -48,7 +48,7 @@ brews:
     repository:
       owner: sidisinsane
       name: homebrew-tap
-    folder: Formula
+    directory: Formula
     description: Extracts hashfms from shell scripts and produces a machine-readable index for LLM agents
     license: MIT
     homepage: https://github.com/sidisinsane/hashfm-agent
