@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/sidisinsane/hashfm-agent/main/schema/hashfm-agent-config.schema.json",
+  "$comment": "Schema version: 1.1.0 | Convention: hashfm-agent 1.x | Last updated: 2026-05-07",
+  "title": "hashfm-agent Configuration",
+  "description": "Configuration schema for the hashfm-agent implementation. Uses if/then to support incremental version upgrades without breaking existing configs.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version for this block. Optional — allows tools to explicitly declare their schema level."
+    },
+    "generate": {
+      "type": "object",
+      "description": "Settings for the 'generate' command.",
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["tsv", "jsonl", "yaml", "ndjson"],
+          "default": "tsv",
+          "description": "The output format for the generated index."
+        },
+        "output": {
+          "type": "string",
+          "description": "The path to write the generated index to. If empty, writes to stdout."
+        },
+        "recursive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to scan subdirectories for hashfm-agent scripts."
+        },
+        "include": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of glob patterns to include. Applied before exclude."
+        },
+        "exclude": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of glob patterns to exclude."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/sidisinsane/hashfm-agent/main/schema/hashfm-agent.schema.json",
+  "title": "hashfm-agent Block",
+  "description": "Schema for script hashfm blocks. Supports single-command and multi-command forms.",
+  "definitions": {
+    "command": {
+      "type": "object",
+      "required": ["description", "usage", "exits"],
+      "additionalProperties": true,
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "A single line describing what this command does.",
+          "pattern": "^[^\\n]+$"
+        },
+        "usage": {
+          "type": "string",
+          "description": "A single line showing how to invoke this command.",
+          "pattern": "^[^\\n]+$"
+        },
+        "exits": {
+          "type": "object",
+          "description": "A map of exit codes to plain-language descriptions.",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[0-9]+$" },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[^\\n]+$"
+          }
+        }
+      }
+    },
+    "single-command": {
+      "description": "A block for a script with a single invocation form.",
+      "$ref": "#/definitions/command"
+    },
+    "multi-command": {
+      "description": "A block for a script that exposes multiple subcommands.",
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/definitions/command" }
+    }
+  }
+}

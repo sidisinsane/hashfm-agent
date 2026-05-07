@@ -1,0 +1,9 @@
+# Lefthook configuration for hashfm-agent
+# https://lefthook.dev/configuration/
+
+min_version: 1.0.0
+
+pre-commit:
+  commands:
+    lint:
+      run: golangci-lint run ./...
