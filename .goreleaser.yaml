@@ -43,15 +43,15 @@ changelog:
     exclude:
       - "^test:"
 
-brews:
-  - name: hashfm-agent
-    repository:
-      owner: sidisinsane
-      name: homebrew-tap
-    directory: Formula
-    description: Extracts hashfms from shell scripts and produces a machine-readable index for LLM agents
-    license: MIT
-    homepage: https://github.com/sidisinsane/hashfm-agent
+# brews:
+#   - name: hashfm-agent
+#     repository:
+#       owner: sidisinsane
+#       name: homebrew-tap
+#     directory: Formula
+#     description: Extracts hashfms from shell scripts and produces a machine-readable index for LLM agents
+#     license: MIT
+#     homepage: https://github.com/sidisinsane/hashfm-agent
 
 release:
   footer: |-
