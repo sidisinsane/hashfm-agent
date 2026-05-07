@@ -57,6 +57,9 @@ jobs:
         env:
           GOPROXY: "https://proxy.golang.org,direct"
 
+      - name: Clean git state
+        run: git clean -fd
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
         with:
