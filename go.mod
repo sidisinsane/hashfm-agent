@@ -3,7 +3,7 @@ module github.com/sidisinsane/hashfm-agent
 go 1.26
 
 require (
-	github.com/sidisinsane/hashfm v1.0.0
+	github.com/sidisinsane/hashfm v1.1.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	gopkg.in/yaml.v3 v3.0.1
 )
