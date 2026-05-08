@@ -1,0 +1,7 @@
+version: "1.0"
+project:
+  name: test-project
+hashfm-agent:
+  generate:
+    format: tsv
+    recursive: true
