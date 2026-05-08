@@ -1,7 +1,7 @@
 # hashfm-agent
 
-Extracts hashfms from shell scripts and produces a machine-readable index for
-LLM agents.
+Extracts hashfm blocks from shell scripts and produces a machine-readable index
+for LLM agents.
 
 `hashfm-agent` is the primary implementation of the `hashfm` convention. It
 reads `# ---` delimited YAML blocks from scripts and generates an index — a
@@ -9,61 +9,29 @@ minimal, token-efficient map of available tools.
 
 ---
 
-## Install
+## Getting Started
+
+**Install (macOS and Linux):**
 
 ```bash
-# macOS (Homebrew)
-brew install sidisinsane/tap/hashfm-agent
+curl -o- https://raw.githubusercontent.com/sidisinsane/hashfm-agent/main/install.sh | bash
+```
 
-# Or download a binary from the releases page
+**Generate an index:**
+
+```bash
+# Current directory
+hashfm-agent generate .
+
+# With flags
+hashfm-agent generate --format jsonl --output index.jsonl .
 ```
 
 ---
 
-## Usage
+## The Hashfm Convention
 
-**Generate an index from the current directory:**
-
-```bash
-hashfm-agent generate
-```
-
-**Set persistent defaults in `.hashfm`:**
-
-```yaml
-version: "1.0"
-project:
-  name: "my-project"
-
-hashfm-agent:
-  generate:
-    format: tsv
-    recursive: true
-```
-
-See `.hashfm` in this repo for a working example.
-
-**CLI flags override config file defaults:**
-
-```bash
-hashfm-agent generate --format jsonl --output index.jsonl
-```
-
----
-
-## Output Formats
-
-| Format | Token cost | Use case |
-|--------|-----------|---------|
-| `tsv` (default) | lowest | LLM agent consumption |
-| `jsonl` | medium | Pipelines, further processing |
-| `yaml` | highest | Human readability |
-
----
-
-## The `hashfm` Convention
-
-`hashfm-agent` reads a small YAML payload from scripts:
+`hashfm-agent` reads a small YAML payload from scripts delimited by `# ---`:
 
 ```bash
 #!/usr/bin/env bash
@@ -77,7 +45,40 @@ hashfm-agent generate --format jsonl --output index.jsonl
 # ---
 ```
 
-A hashfm – hash + frontmatter. See [`hashfm`](https://github.com/sidisinsane/hashfm) for the full specification.
+See [`hashfm`](https://github.com/sidisinsane/hashfm) for the full
+specification — delimiters, line prefix, parser rules, and the config file
+schema.
+
+---
+
+## Configuration
+
+Set persistent defaults in `.hashfm`:
+
+```yaml
+version: "1.1.0"
+project:
+  name: "my-project"
+
+hashfm-agent:
+  generate:
+    format: tsv
+    recursive: true
+    output: index.tsv
+```
+
+See [`hashfm/CONFIG.md`](https://github.com/sidisinsane/hashfm/blob/main/CONFIG.md)
+for supported filenames, schema, and validation rules.
+
+---
+
+## Output Formats
+
+| Format | Token cost | Use case |
+|--------|-----------|---------|
+| `tsv` (default) | lowest | LLM agent consumption |
+| `jsonl` | medium | Pipelines, further processing |
+| `yaml` | highest | Human readability |
 
 ---
 
@@ -85,7 +86,8 @@ A hashfm – hash + frontmatter. See [`hashfm`](https://github.com/sidisinsane/h
 
 | Document | What it covers |
 |----------|---------------|
-| `spec.md` | hashfm syntax, fields, index formats, agent workflow |
+| `spec.md` | Agent field schema, index formats, agent workflow |
+| [`hashfm/spec.md`](https://github.com/sidisinsane/hashfm/blob/main/spec.md) | Base hashfm syntax and rules |
 | [`hashfm/CONFIG.md`](https://github.com/sidisinsane/hashfm/blob/main/CONFIG.md) | `.hashfm` config file design and implementation |
 
 ---
@@ -94,7 +96,7 @@ A hashfm – hash + frontmatter. See [`hashfm`](https://github.com/sidisinsane/h
 
 ### Prerequisites
 
-- Go 1.26+
+- Go 1.26.2
 - [golangci-lint](https://golangci-lint.run) — for Go linting
 - [lefthook](https://lefthook.dev) — for pre-commit hooks
 

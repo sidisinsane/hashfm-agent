@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/sidisinsane/hashfm-agent/internal/config"
 	"github.com/sidisinsane/hashfm-agent/internal/pipeline"
@@ -68,9 +69,7 @@ func runGenerate(args []string) {
 	fset.StringVar(&configPath, "config", ".hashfm", "Path to config file")
 	fset.StringVar(&configPath, "c", ".hashfm", "Path to config file (shorthand)")
 
-	// We need to parse just the config flag first if we want to allow users to override the config path via CLI.
-	// Since 'flag' stops after the first positional arg or unknown flag, we do a quick pre-parse or use defaults.
-	cfg, err := config.Load(".hashfm") // Default load
+	cfg, err := config.Load()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
@@ -135,6 +134,14 @@ func runGenerate(args []string) {
 	if err := gen.Generate(w, entries); err != nil {
 		fmt.Fprintln(os.Stderr, "generate:", err)
 		os.Exit(1)
+	}
+
+	// Completion summary
+	if output != "" {
+		fmt.Fprintf(os.Stderr, "Generated index: %s (%d commands from %d scripts)\n", output, len(entries), len(entries))
+	}
+	for _, w := range warnings {
+		fmt.Fprintf(os.Stderr, "Skipped: %s\n", filepath.Base(w))
 	}
 }
 

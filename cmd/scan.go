@@ -54,7 +54,7 @@ func ScanDir(dir string, recursive bool) (entries []model.IndexEntry, warnings [
 			if _, ok := err.(pipeline.ErrNoBlock); ok {
 				return nil // silently skip
 			}
-			warnings = append(warnings, fmt.Sprintf("%s: %v", path, err))
+			warnings = append(warnings, fmt.Sprintf("%s: malformed hashfm block", path))
 			return nil
 		}
 

@@ -1,0 +1,9 @@
+hashfm-agent:
+  generate:
+    format: jsonl
+    output: output.jsonl
+    recursive: false
+    include:
+      - "*.sh"
+    exclude:
+      - "test/**"

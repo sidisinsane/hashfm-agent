@@ -3,6 +3,10 @@
 A minimal, token-efficient interface between Bash scripts and LLM agents. An
 implementation of [hashfm](https://raw.githubusercontent.com/sidisinsane/hashfm/refs/heads/main/spec.md).
 
+See the `hashfm` spec for the base convention — delimiters, line prefix, and
+parser rules. This document defines the `hashfm-agent` field schema, the index,
+output formats, and the agent workflow.
+
 ---
 
 ## Design Principles
@@ -16,50 +20,39 @@ implementation of [hashfm](https://raw.githubusercontent.com/sidisinsane/hashfm/
 
 ---
 
-## Schema
+## Hashfm Block Schema
 
 ### Single-command script
 
-Used when the script has one purpose and one invocation form. Mandatory fields
-appear at the top level of the block.
+Used when the script has one purpose and one invocation form.
 
 ```bash
 #!/usr/bin/env bash
 # ---
 # description: Converts all PNG files in a directory to WebP format
-# usage: valid-single.sh <input_dir> [--quality <0-100>] [--dry-run]
+# usage: valid-single.sh [--quality] [--dry-run]
 # exits:
 #   0: success
-#   1: input_dir not provided
-#   2: input_dir does not exist or is not a directory
-#   3: no PNG files found in input_dir
+#   1: no PNG files found in working directory
 # ---
 ```
 
 ### Multi-command script
 
 Used when the script exposes multiple subcommands. The block contains a YAML
-sequence — one entry per subcommand. Each entry is identified by a leading
-`- ` on its first field.
+sequence — one entry per subcommand.
 
 ```bash
 #!/usr/bin/env bash
 # ---
 # - description: Create and push a feature branch from current HEAD
-#   usage: valid-multi.sh feature <branch-name>
-#   exits:
-#     0: success
-#     1: branch-name not provided
-#     2: branch already exists locally or on remote
+#   usage: valid-multi.sh feature
 # - description: Prune local branches already merged into main
-#   usage: valid-multi.sh cleanup [--dry-run]
-#   exits:
-#     0: success
-#     1: not inside a git repository
+#   usage: valid-multi.sh cleanup
 # ---
 ```
 
-### Parser disambiguation rule
+### Parser Disambiguation Rule
 
 If the first content line inside the block starts with `- `, the block is
 treated as multi-command. Otherwise it is treated as single-command. These two
@@ -90,9 +83,9 @@ script name, positional arguments, and optional flags using conventional notatio
 
 | Notation | Meaning |
 |---|---|
-| `<arg>` | Required positional argument |
+| `arg` | Required positional argument |
 | `[arg]` | Optional positional argument |
-| `[--flag <value>]` | Optional flag with value |
+| `[--flag value]` | Optional flag with value |
 | `[--flag]` | Optional boolean flag |
 
 ### `exits`
@@ -120,7 +113,7 @@ The index is the only artifact generated from `hashfm-agent` blocks. It is a
 single file listing all discovered commands. Its purpose is discovery — an agent
 reads the index to find candidate tools before reading any individual script.
 
-### Index fields
+### Index Fields
 
 Derived from the block and the filesystem:
 
@@ -132,7 +125,7 @@ Derived from the block and the filesystem:
 
 For multi-command scripts, each subcommand produces its own index row.
 
-### Output formats
+### Output Formats
 
 Formats are ranked by token efficiency.
 
@@ -178,7 +171,7 @@ One list entry per command, no wrapper key.
   description: Rebase current branch onto main and force-push
 ```
 
-### Future: tags and filtered indexes
+### Future: Tags And Filtered Indexes
 
 A `tags` field is reserved for future use. When implemented it will be an
 optional list field in the block. The index generator will support filtering by
@@ -210,7 +203,7 @@ is produced. The index is the only generated artifact.
 
 ---
 
-## Summary of Fields
+## Summary Of Fields
 
 | Field | Level | Cardinality | Required |
 |---|---|---|---|
@@ -221,15 +214,14 @@ is produced. The index is the only generated artifact.
 
 ---
 
-## Schema Sync
+## Schema Sync And Config Loading
 
-Both the config schema (`hashfm-agent-config.schema.json`) and the block schema
-(`hashfm-agent.schema.json`) exist in two places:
+Both schemas exist in two places:
 
-| Location | Purpose |
-|---|---|
-| `schema/` | Source of truth. Published on GitHub, referenced by `$ref`. |
-| `internal/schema/` | Embedded in the binary via `//go:embed`. |
+| Schema | `schema/` (source of truth) | `internal/schema/` (embedded) |
+|---|---|---|
+| Block — `hashfm-agent.schema.json` | Published on GitHub | `//go:embed` in the binary |
+| Config — `hashfm-agent-config.schema.json` | Published on GitHub | `//go:embed` in the binary |
 
 Go's embed directive cannot reference parent directories or URLs. The
 `internal/schema/` files are copies, never edited directly. They are synced
@@ -248,3 +240,16 @@ go generate ./internal/schema
 ```
 
 To edit a schema, edit the file in `schema/` and run `go generate` to sync.
+
+### Config Loading
+
+The config file is loaded via `hashfm.LoadConfig`, which provides:
+
+- Config file discovery (`.hashfm`, `.hashfm.yml`, `.hashfm.yaml`, `.hashfm.json`)
+- Validation against the core `hashfm-config.schema.json`
+
+The `hashfm-agent` namespace is then validated against
+`hashfm-agent-config.schema.json`.
+
+See [`hashfm/CONFIG.md`](https://github.com/sidisinsane/hashfm/blob/main/CONFIG.md)
+for the full config file specification.

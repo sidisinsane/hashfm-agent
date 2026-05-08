@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"embed"
 	"path/filepath"
 	"testing"
 
@@ -8,13 +9,14 @@ import (
 	"github.com/sidisinsane/hashfm-agent/internal/generator"
 )
 
-const testdir = "../testdata"
+//go:embed testdata/*
+var testFixtures embed.FS
+
+const testdataDir = "testdata"
 
 func testPath(name string) string {
-	return filepath.Join(testdir, name)
+	return filepath.Join(testdataDir, name)
 }
-
-// NewGenerator tests
 
 func TestNewGenerator_Defaults(t *testing.T) {
 	for _, format := range []string{"tsv", ""} {
@@ -60,7 +62,7 @@ func TestNewGenerator_UnknownFormat(t *testing.T) {
 func TestScanDir_ReturnsEntriesForValidScripts(t *testing.T) {
 	// Scans the whole testdir — invalid-*.sh fixtures will produce warnings,
 	// which is expected. We only assert on the entry count here.
-	entries, _, err := cmd.ScanDir(testdir, false)
+	entries, _, err := cmd.ScanDir(testdataDir, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -71,25 +73,25 @@ func TestScanDir_ReturnsEntriesForValidScripts(t *testing.T) {
 }
 
 func TestScanDir_SkipsNoBlockFiles(t *testing.T) {
-	entries, warnings, err := cmd.ScanDir(testdir, false)
+	entries, warnings, err := cmd.ScanDir(testdataDir, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	// no-block.sh must be silently skipped — no entry, no warning
 	for _, e := range entries {
-		if filepath.Base(e.Path) == "no-block.sh" {
+		if pathBase(e.Path) == "no-block.sh" {
 			t.Error("no-block.sh should be silently skipped")
 		}
 	}
 	for _, w := range warnings {
-		if filepath.Base(w) == "no-block.sh" {
+		if pathBase(w) == "no-block.sh" {
 			t.Error("no-block.sh should produce no warning")
 		}
 	}
 }
 
 func TestScanDir_WarnsOnInvalidScripts(t *testing.T) {
-	entries, warnings, err := cmd.ScanDir(testdir, false)
+	entries, warnings, err := cmd.ScanDir(testdataDir, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -99,7 +101,7 @@ func TestScanDir_WarnsOnInvalidScripts(t *testing.T) {
 	}
 	// invalid scripts must not produce index entries
 	for _, e := range entries {
-		base := filepath.Base(e.Path)
+		base := pathBase(e.Path)
 		if len(base) > 8 && base[:8] == "invalid-" {
 			t.Errorf("invalid script %q should not produce an index entry", base)
 		}
@@ -111,4 +113,14 @@ func TestScanDir_NonExistentDir(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for non-existent directory, got nil")
 	}
+}
+
+// pathBase returns the base name of a path.
+func pathBase(path string) string {
+	for i := len(path) - 1; i >= 0; i-- {
+		if path[i] == '/' {
+			return path[i+1:]
+		}
+	}
+	return path
 }
