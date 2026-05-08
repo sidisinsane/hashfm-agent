@@ -1,7 +1,7 @@
 package pipeline_test
 
 import (
-	"os"
+	"embed"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -9,19 +9,22 @@ import (
 	"github.com/sidisinsane/hashfm-agent/internal/pipeline"
 )
 
-const testdir = "../../testdata"
+//go:embed testdata/*
+var testFixtures embed.FS
 
-func readFile(t *testing.T, name string) string {
+const testdataDir = "testdata"
+
+func readFixture(t *testing.T, name string) string {
 	t.Helper()
-	b, err := os.ReadFile(filepath.Join(testdir, name))
+	data, err := testFixtures.ReadFile(filepath.Join(testdataDir, name))
 	if err != nil {
 		t.Fatalf("read %s: %v", name, err)
 	}
-	return string(b)
+	return string(data)
 }
 
 func TestProcess_SingleCommand(t *testing.T) {
-	block, err := pipeline.Process(readFile(t, "valid-single.sh"))
+	block, err := pipeline.Process(readFixture(t, "valid-single.sh"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -44,7 +47,7 @@ func TestProcess_SingleCommand(t *testing.T) {
 }
 
 func TestProcess_MultiCommand(t *testing.T) {
-	block, err := pipeline.Process(readFile(t, "valid-multi.sh"))
+	block, err := pipeline.Process(readFixture(t, "valid-multi.sh"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -68,7 +71,7 @@ func TestProcess_MultiCommand(t *testing.T) {
 }
 
 func TestProcess_NoBlock(t *testing.T) {
-	_, err := pipeline.Process(readFile(t, "no-block.sh"))
+	_, err := pipeline.Process(readFixture(t, "no-block.sh"))
 	if err == nil {
 		t.Fatal("expected ErrNoBlock, got nil")
 	}
@@ -78,7 +81,7 @@ func TestProcess_NoBlock(t *testing.T) {
 }
 
 func TestProcess_MissingDescription(t *testing.T) {
-	_, err := pipeline.Process(readFile(t, "invalid-missing-description.sh"))
+	_, err := pipeline.Process(readFixture(t, "invalid-missing-description.sh"))
 	if err == nil {
 		t.Fatal("expected validation error for missing description")
 	}
@@ -88,7 +91,7 @@ func TestProcess_MissingDescription(t *testing.T) {
 }
 
 func TestProcess_MissingUsage(t *testing.T) {
-	_, err := pipeline.Process(readFile(t, "invalid-missing-usage.sh"))
+	_, err := pipeline.Process(readFixture(t, "invalid-missing-usage.sh"))
 	if err == nil {
 		t.Fatal("expected validation error for missing usage")
 	}
@@ -98,7 +101,7 @@ func TestProcess_MissingUsage(t *testing.T) {
 }
 
 func TestProcess_MissingExits(t *testing.T) {
-	_, err := pipeline.Process(readFile(t, "invalid-missing-exits.sh"))
+	_, err := pipeline.Process(readFixture(t, "invalid-missing-exits.sh"))
 	if err == nil {
 		t.Fatal("expected validation error for missing exits")
 	}
@@ -108,7 +111,7 @@ func TestProcess_MissingExits(t *testing.T) {
 }
 
 func TestProcess_MultiTooFewEntries(t *testing.T) {
-	_, err := pipeline.Process(readFile(t, "invalid-multi-single-entry.sh"))
+	_, err := pipeline.Process(readFixture(t, "invalid-multi-single-entry.sh"))
 	if err == nil {
 		t.Fatal("expected validation error for single-entry multi block")
 	}
