@@ -2,8 +2,8 @@ package generator_test
 
 import (
 	"bytes"
+	"embed"
 	"encoding/json"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -14,11 +14,14 @@ import (
 	"github.com/sidisinsane/hashfm-agent/internal/pipeline"
 )
 
-const testdir = "../../testdata"
+//go:embed testdata/*
+var testFixtures embed.FS
+
+const testdataDir = "testdata"
 const tsvHeader = "name\tpath\tdescription"
 
 func testPath(name string) string {
-	return filepath.Join(testdir, name)
+	return filepath.Join(testdataDir, name)
 }
 
 func loadEntries(t *testing.T) []model.IndexEntry {
@@ -26,15 +29,15 @@ func loadEntries(t *testing.T) []model.IndexEntry {
 	fixtures := []string{"valid-single.sh", "valid-multi.sh"}
 	var entries []model.IndexEntry
 	for _, name := range fixtures {
-		path := testPath(name)
-		src, err := os.ReadFile(path)
+		data, err := testFixtures.ReadFile(filepath.Join(testdataDir, name))
 		if err != nil {
 			t.Fatalf("read %s: %v", name, err)
 		}
-		block, err := pipeline.Process(string(src))
+		block, err := pipeline.Process(string(data))
 		if err != nil {
 			t.Fatalf("process %s: %v", name, err)
 		}
+		path := testPath(name)
 		entries = append(entries, index.FromBlock(block, path)...)
 	}
 	return entries
