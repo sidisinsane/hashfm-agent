@@ -153,3 +153,43 @@ project:
 		t.Errorf("expected empty format, got %q", cfg.Agent.Generate.Format)
 	}
 }
+
+func TestLoadWithPath_MissingFile(t *testing.T) {
+	cfg, err := config.LoadWithPath("/nonexistent/.hashfm")
+	if err != nil {
+		t.Fatalf("LoadWithPath: unexpected error: %v", err)
+	}
+	if cfg == nil {
+		t.Fatal("expected non-nil config")
+	}
+	if cfg.Agent.Generate.Format != "" {
+		t.Errorf("expected empty format, got %q", cfg.Agent.Generate.Format)
+	}
+}
+
+func TestLoadWithPath_ValidConfig(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	data, err := readFixture("valid-full.yaml")
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	configPath := filepath.Join(tmpDir, ".hashfm")
+	if err := os.WriteFile(configPath, data, 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	cfg, err := config.LoadWithPath(configPath)
+	if err != nil {
+		t.Fatalf("LoadWithPath: unexpected error: %v", err)
+	}
+	if cfg == nil {
+		t.Fatal("expected non-nil config")
+	}
+	if cfg.Agent.Generate.Format != "jsonl" {
+		t.Errorf("expected format 'jsonl', got %q", cfg.Agent.Generate.Format)
+	}
+	if cfg.Agent.Generate.Output != "output.jsonl" {
+		t.Errorf("expected output 'output.jsonl', got %q", cfg.Agent.Generate.Output)
+	}
+}
