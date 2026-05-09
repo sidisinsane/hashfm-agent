@@ -3,6 +3,7 @@ package pipeline
 
 import (
 	"fmt"
+  "strconv"
 	"strings"
 
 	"github.com/sidisinsane/hashfm"
@@ -109,10 +110,8 @@ func validateCommand(cmd model.Command) error {
 		return fmt.Errorf("missing required field: exits (must have at least one entry)")
 	}
 	for k := range cmd.Exits {
-		for _, ch := range k {
-			if ch < '0' || ch > '9' {
-				return fmt.Errorf("exits key %q must be an integer", k)
-			}
+		if _, err := strconv.Atoi(k); err != nil {
+			return fmt.Errorf("exits key %q must be an integer", k)
 		}
 	}
 	return nil
