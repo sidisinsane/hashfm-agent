@@ -17,6 +17,12 @@ minimal, token-efficient map of available tools.
 curl -o- https://raw.githubusercontent.com/sidisinsane/hashfm-agent/main/install.sh | bash
 ```
 
+**Install (Windows):**
+
+```powershell
+irm https://raw.githubusercontent.com/sidisinsane/hashfm-agent/main/install.ps1 | iex
+```
+
 **Generate an index:**
 
 ```bash
