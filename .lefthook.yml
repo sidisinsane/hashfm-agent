@@ -5,5 +5,7 @@ min_version: 1.0.0
 
 pre-commit:
   commands:
+    tidy:
+      run: go mod tidy && git diff --exit-code go.mod go.sum
     lint:
       run: golangci-lint run ./...
