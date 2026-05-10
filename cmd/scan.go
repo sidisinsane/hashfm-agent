@@ -27,9 +27,9 @@ func NewGenerator(format string) (generator.Generator, error) {
 	}
 }
 
-// ScanDir recursively or shallowly walks a directory to find and process all .sh files.
+// ScanDir recursively or shallowly walks a directory to find and process matching .sh files.
 // It returns a flattened list of all index entries found across all processed files.
-func ScanDir(dir string, recursive bool) (entries []model.IndexEntry, warnings []string, err error) {
+func ScanDir(dir string, recursive bool, include, exclude []string) (entries []model.IndexEntry, warnings []string, err error) {
 	walkFn := func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
@@ -44,6 +44,20 @@ func ScanDir(dir string, recursive bool) (entries []model.IndexEntry, warnings [
 			return nil
 		}
 
+		// Compute rel for filtering — relative to dir, using forward slashes.
+		filterRel, err := filepath.Rel(dir, path)
+		if err != nil {
+			filterRel = filepath.Base(path)
+		}
+		filterRel = filepath.ToSlash(filterRel)
+
+		if len(include) > 0 && !matchesAny(filterRel, include) {
+			return nil
+		}
+		if len(exclude) > 0 && matchesAny(filterRel, exclude) {
+			return nil
+		}
+
 		src, err := os.ReadFile(path)
 		if err != nil {
 			return err
@@ -52,7 +66,7 @@ func ScanDir(dir string, recursive bool) (entries []model.IndexEntry, warnings [
 		block, err := pipeline.Process(string(src))
 		if err != nil {
 			if _, ok := err.(pipeline.ErrNoBlock); ok {
-				return nil // silently skip
+				return nil
 			}
 			warnings = append(warnings, fmt.Sprintf("%s: malformed hashfm block", path))
 			return nil
@@ -70,4 +84,14 @@ func ScanDir(dir string, recursive bool) (entries []model.IndexEntry, warnings [
 
 	err = filepath.WalkDir(dir, walkFn)
 	return
+}
+
+func matchesAny(relPath string, patterns []string) bool {
+	for _, pattern := range patterns {
+		matched, err := filepath.Match(pattern, relPath)
+		if err == nil && matched {
+			return true
+		}
+	}
+	return false
 }

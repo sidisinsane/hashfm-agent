@@ -23,6 +23,8 @@ curl -o- https://raw.githubusercontent.com/sidisinsane/hashfm-agent/main/install
 irm https://raw.githubusercontent.com/sidisinsane/hashfm-agent/main/install.ps1 | iex
 ```
 
+---
+
 **Generate an index:**
 
 ```bash
@@ -71,7 +73,19 @@ hashfm-agent:
     format: tsv
     recursive: true
     output: index.tsv
+    exclude:
+      - _*.sh
+    include:
+      - scripts/*.sh
 ```
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `format` | string | `tsv` | Output format: `tsv`, `jsonl`, or `yaml`. |
+| `output` | string | — | File path to write the index to. If empty, writes to stdout. |
+| `recursive` | boolean | `false` | Whether to scan subdirectories. |
+| `exclude` | list | — | Blacklist of glob patterns. Matching files are skipped. |
+| `include` | list | — | Whitelist of glob patterns. Only matching files are processed. If empty, all `.sh` files are included. |
 
 See [`hashfm/CONFIG.md`](https://github.com/sidisinsane/hashfm/blob/main/CONFIG.md)
 for supported filenames, schema, and validation rules.

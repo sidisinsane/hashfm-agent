@@ -111,7 +111,7 @@ func runGenerate(args []string) {
 		os.Exit(1)
 	}
 
-	entries, warnings, err := ScanDir(dir, recursive)
+	entries, warnings, err := ScanDir(dir, recursive, cfg.Agent.Generate.Include, cfg.Agent.Generate.Exclude)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "generate:", err)
 		os.Exit(1)
