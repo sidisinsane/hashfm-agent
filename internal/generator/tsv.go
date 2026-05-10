@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/sidisinsane/hashfm-agent/internal/model"
 )
@@ -15,7 +16,8 @@ type TSV struct{}
 func (TSV) Generate(w io.Writer, entries []model.IndexEntry) error {
 	fmt.Fprintln(w, "name\tpath\tdescription")
 	for _, e := range entries {
-		fmt.Fprintf(w, "%s\t%s\t%s\n", e.Name, e.Path, e.Description)
+		desc := strings.ReplaceAll(strings.TrimSpace(e.Description), "\n", " ")
+		fmt.Fprintf(w, "%s\t%s\t%s\n", e.Name, e.Path, desc)
 	}
 	return nil
 }
