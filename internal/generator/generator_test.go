@@ -72,6 +72,22 @@ func TestTSV_Empty(t *testing.T) {
 	}
 }
 
+func TestTSV_NewlineInDescription(t *testing.T) {
+	entries := []model.IndexEntry{
+		{Name: "test", Path: "./test.sh", Description: "Line one\nLine two"},
+	}
+	var buf bytes.Buffer
+	generator.TSV{}.Generate(&buf, entries)
+	lines := strings.Split(strings.TrimRight(buf.String(), "\n"), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("expected 2 lines (header + 1 entry), got %d", len(lines))
+	}
+	// description should have spaces instead of newlines
+	if !strings.Contains(lines[1], "Line one Line two") {
+		t.Errorf("description should have spaces instead of newlines, got %q", lines[1])
+	}
+}
+
 func TestJSONL(t *testing.T) {
 	entries := loadEntries(t)
 	var buf bytes.Buffer
