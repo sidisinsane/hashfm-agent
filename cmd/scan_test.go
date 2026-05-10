@@ -62,7 +62,7 @@ func TestNewGenerator_UnknownFormat(t *testing.T) {
 func TestScanDir_ReturnsEntriesForValidScripts(t *testing.T) {
 	// Scans the whole testdir — invalid-*.sh fixtures will produce warnings,
 	// which is expected. We only assert on the entry count here.
-	entries, _, err := cmd.ScanDir(testdataDir, false)
+	entries, _, err := cmd.ScanDir(testdataDir, false, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestScanDir_ReturnsEntriesForValidScripts(t *testing.T) {
 }
 
 func TestScanDir_SkipsNoBlockFiles(t *testing.T) {
-	entries, warnings, err := cmd.ScanDir(testdataDir, false)
+	entries, warnings, err := cmd.ScanDir(testdataDir, false, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -91,7 +91,7 @@ func TestScanDir_SkipsNoBlockFiles(t *testing.T) {
 }
 
 func TestScanDir_WarnsOnInvalidScripts(t *testing.T) {
-	entries, warnings, err := cmd.ScanDir(testdataDir, false)
+	entries, warnings, err := cmd.ScanDir(testdataDir, false, nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -109,9 +109,68 @@ func TestScanDir_WarnsOnInvalidScripts(t *testing.T) {
 }
 
 func TestScanDir_NonExistentDir(t *testing.T) {
-	_, _, err := cmd.ScanDir("/nonexistent/path", false)
+	_, _, err := cmd.ScanDir("/nonexistent/path", false, nil, nil)
 	if err == nil {
 		t.Error("expected error for non-existent directory, got nil")
+	}
+}
+
+func TestScanDir_ExcludePattern(t *testing.T) {
+	entries, _, err := cmd.ScanDir(testdataDir, false, nil, []string{"invalid-*.sh"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	for _, e := range entries {
+		base := pathBase(e.Path)
+		if len(base) > 8 && base[:8] == "invalid-" {
+			t.Errorf("invalid script %q should be excluded", base)
+		}
+	}
+	// valid scripts still included
+	if len(entries) != 4 {
+		t.Errorf("expected 4 entries, got %d", len(entries))
+	}
+}
+
+func TestScanDir_IncludePattern(t *testing.T) {
+	entries, _, err := cmd.ScanDir(testdataDir, false, []string{"valid-*.sh"}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// only valid-single.sh and valid-multi.sh match
+	if len(entries) != 4 {
+		t.Errorf("expected 4 entries, got %d", len(entries))
+	}
+	for _, e := range entries {
+		base := pathBase(e.Path)
+		if base[:6] != "valid-" {
+			t.Errorf("expected only valid-*.sh, got %q", base)
+		}
+	}
+}
+
+func TestScanDir_ExcludeTakesPrecedence(t *testing.T) {
+	entries, _, err := cmd.ScanDir(testdataDir, false, []string{"valid-*.sh"}, []string{"valid-multi.sh"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+	if pathBase(entries[0].Path) != "valid-single.sh" {
+		t.Errorf("expected valid-single.sh, got %q", pathBase(entries[0].Path))
+	}
+}
+
+func TestScanDir_InvalidPattern(t *testing.T) {
+	// Invalid exclude pattern is silently ignored; files are processed normally.
+	_, warnings, err := cmd.ScanDir(testdataDir, false, nil, []string{"["})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// invalid-*.sh still produce warnings despite the invalid exclude pattern
+	if len(warnings) == 0 {
+		t.Error("expected warnings for invalid scripts")
 	}
 }
 
